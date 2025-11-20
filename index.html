@@ -6,6 +6,7 @@
 <title>Video Metadata Extractor</title>
 <link rel="icon" href="imgvideo.png">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
   body {
     margin: 0;
@@ -19,10 +20,10 @@
     overflow: hidden;
   }
 
-  /* Splash */
+  /* Splash screen */
   #splash {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     background: radial-gradient(circle at top, #0b132b, #000);
     display: flex;
     flex-direction: column;
@@ -43,7 +44,7 @@
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 20px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(16px);
     padding: 35px;
     text-align: center;
     opacity: 0;
@@ -74,7 +75,7 @@
     border-color: cyan;
     background-color: rgba(0,255,255,0.08);
   }
-  .drop-zone p { margin: 10px 0 20px; font-size: 15px; color: #aaa; }
+  .drop-zone p { margin: 10px 0 20px; font-size: 15px; color: #ddd; }
 
   button {
     background-color: cyan;
@@ -91,6 +92,7 @@
     background-color: #00ffffaa;
     box-shadow: 0 0 10px cyan;
   }
+
   .clear-btn {
     background-color: #ff5555;
     color: #fff;
@@ -100,18 +102,9 @@
     box-shadow: 0 0 10px #ff4444;
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 25px;
-  }
-  th, td { text-align: left; padding: 8px 10px; }
-  th { border-bottom: 1px solid rgba(255,255,255,0.2); color: cyan; }
-  tr:nth-child(even) { background-color: rgba(255,255,255,0.05); }
-
   .progress-container {
     width: 100%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
     border-radius: 10px;
     overflow: hidden;
     margin-top: 15px;
@@ -125,6 +118,7 @@
     box-shadow: 0 0 10px cyan;
     transition: width 0.3s ease;
   }
+
   .progress-text {
     position: absolute;
     top: -25px;
@@ -133,19 +127,46 @@
     color: cyan;
   }
 
-  footer { margin-top: 25px; font-size: 13px; color: #aaa; }
-  footer span { color: cyan; font-weight: bold; }
+  #summaryInfo {
+    color: white;
+    font-size: 16px;
+    margin-top: 12px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  #userMessage {
+    margin-top: 20px;
+    color: cyan;
+    font-size: 16px;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  footer {
+    margin-top: 25px;
+    font-size: 13px;
+    color: #aaa;
+  }
+  footer span {
+    color: cyan;
+    font-weight: bold;
+  }
 </style>
 </head>
+
 <body>
 
-  <!-- Splash -->
+  <!-- SPLASH -->
   <div id="splash">
     <h1>🎬 Video Metadata Extractor</h1>
     <p>Developed by Mangeshh Gaykar</p>
   </div>
 
   <div class="wrapper">
+
     <header>
       <img src="imgvideo.png" alt="icon">
       <div>Video Metadata Extractor</div>
@@ -153,11 +174,18 @@
 
     <div id="dropZone" class="drop-zone">
       <p>Drag & Drop your video files here</p>
+
       <button id="fileSelectBtn">Select Video Files</button>
       <input type="file" id="fileInput" multiple accept="video/*" style="display:none;">
+
       <button id="folderSelectBtn">Select Folder</button>
       <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;">
+
       <p>Supported formats: MP4, MKV, AVI, MOV, WMV</p>
+
+      <!-- SUMMARY -->
+      <p id="summaryInfo"></p>
+
     </div>
 
     <div style="text-align:center; margin-top:20px;">
@@ -170,13 +198,16 @@
       <div class="progress-text" id="progressText">0%</div>
     </div>
 
-    <div id="tableContainer"></div>
+    <p id="userMessage"></p>
 
     <footer>🧑‍💻 Developed by <span>Mangeshh Gaykar</span></footer>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- XLSX-STYLE (supports cell formatting) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-style@0.8.13/dist/xlsx.core.min.js"></script>
+
 <script>
+
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   const folderInput = document.getElementById('folderInput');
@@ -187,7 +218,8 @@
   const progressContainer = document.getElementById('progressContainer');
   const progressBar = document.getElementById('progressBar');
   const progressText = document.getElementById('progressText');
-  const tableContainer = document.getElementById('tableContainer');
+  const summaryInfo = document.getElementById('summaryInfo');
+  const userMessage = document.getElementById('userMessage');
 
   let selectedFiles = [];
   let metadataList = [];
@@ -212,9 +244,12 @@
   clearBtn.addEventListener('click', () => {
     selectedFiles = [];
     metadataList = [];
-    tableContainer.innerHTML = "";
     progressBar.style.width = "0%";
     progressText.textContent = "0%";
+
+    userMessage.style.display = "none";
+    summaryInfo.style.opacity = 0;
+    summaryInfo.innerHTML = "";
   });
 
   function handleFiles(files) {
@@ -225,40 +260,57 @@
 
   async function analyzeVideosSequentially() {
     if (!selectedFiles.length) return;
+
     metadataList = [];
+    userMessage.style.display = "none";
+    summaryInfo.style.opacity = 0;
+
     progressContainer.style.display = "block";
     progressBar.style.width = "0%";
     progressText.textContent = "0%";
-    tableContainer.innerHTML = "";
 
     let totalDuration = 0;
 
     for (let i = 0; i < selectedFiles.length; i++) {
+
       const file = selectedFiles[i];
+
       await new Promise(resolve => {
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.src = URL.createObjectURL(file);
+
         video.onloadedmetadata = () => {
           URL.revokeObjectURL(video.src);
+
           totalDuration += video.duration;
+
           metadataList.push({
             "File Name": file.name,
             "Duration": new Date(video.duration * 1000).toISOString().substr(11, 8),
             "Resolution": `${video.videoWidth}x${video.videoHeight}`,
             "Size": formatSize(file.size)
           });
+
           const progress = Math.round(((i + 1) / selectedFiles.length) * 100);
           progressBar.style.width = progress + "%";
           progressText.textContent = progress + "%";
+
           resolve();
         };
       });
     }
 
-    progressText.textContent = "✅ 100% Completed";
+    progressText.textContent = "✔ Completed";
     setTimeout(() => { progressContainer.style.display = "none"; }, 800);
-    displayTable(totalDuration);
+
+    summaryInfo.innerHTML =
+      `Total Videos: ${metadataList.length}<br>Total Duration: ${formatTotalDuration(totalDuration)}`;
+    summaryInfo.style.opacity = 1;
+
+    userMessage.textContent = "Processing completed. Click Export to Excel for details report.";
+    userMessage.style.display = "block";
+    setTimeout(() => userMessage.style.opacity = 1, 50);
   }
 
   function formatSize(bytes) {
@@ -273,16 +325,7 @@
     return `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
   }
 
-  function displayTable(totalDuration = 0) {
-    if (!metadataList.length) return;
-    let html = "<table><tr><th>File Name</th><th>Duration</th><th>Resolution</th><th>Size</th></tr>";
-    metadataList.forEach(m => {
-      html += `<tr><td>${m["File Name"]}</td><td>${m["Duration"]}</td><td>${m["Resolution"]}</td><td>${m["Size"]}</td></tr>`;
-    });
-    html += `</table><br><p><strong>Total Videos:</strong> ${metadataList.length} &nbsp; | &nbsp; <strong>Total Duration:</strong> ${formatTotalDuration(totalDuration)}</p>`;
-    tableContainer.innerHTML = html;
-  }
-
+  /* ========= EXCEL EXPORT WITH FORMATTING + AUTO COLUMN WIDTH ========= */
   exportBtn.addEventListener('click', () => {
     if (!metadataList.length) return;
 
@@ -301,22 +344,44 @@
     const exportData = [...metadataList, {}, totalRow];
     const ws = XLSX.utils.json_to_sheet(exportData);
 
-    // Apply bold style to headers and total row
     const range = XLSX.utils.decode_range(ws['!ref']);
     const lastRow = range.e.r;
 
     for (let C = range.s.c; C <= range.e.c; ++C) {
-      const headerCell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
-      if (headerCell) headerCell.s = { font: { bold: true } };
 
+      // HEADER - Bold Black
+      const headerCell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+      if (headerCell) {
+        headerCell.s = {
+          font: { bold: true, color: { rgb: "000000" } }
+        };
+      }
+
+      // TOTAL ROW - Bold Red
       const totalCell = ws[XLSX.utils.encode_cell({ r: lastRow, c: C })];
-      if (totalCell && totalCell.v) totalCell.s = { font: { bold: true } };
+      if (totalCell && totalCell.v) {
+        totalCell.s = {
+          font: { bold: true, color: { rgb: "FF0000" } }
+        };
+      }
     }
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Video Metadata");
-    XLSX.writeFile(wb, "Video_Metadata_Report.xlsx", { cellStyles: true });
+    /* 🔥 AUTO-COLUMN WIDTH */
+    const colWidths = [];
+    exportData.forEach(row => {
+      Object.keys(row).forEach((key, index) => {
+        const cellValue = row[key] ? row[key].toString() : "";
+        colWidths[index] = Math.max(colWidths[index] || 10, cellValue.length + 5);
+      });
+    });
+
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+    const wb = { SheetNames: ["Video Metadata"], Sheets: { "Video Metadata": ws } };
+    XLSX.writeFile(wb, "Video_Metadata_Report.xlsx", { bookType: "xlsx", type: "binary" });
   });
+
 </script>
+
 </body>
 </html>
