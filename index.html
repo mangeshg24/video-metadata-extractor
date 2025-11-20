@@ -20,22 +20,21 @@
     overflow: hidden;
   }
 
-  /* Splash screen */
+  /* Splash */
   #splash {
     position: fixed;
     inset: 0;
     background: radial-gradient(circle at top, #0b132b, #000);
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     color: cyan;
     z-index: 9999;
     animation: fadeOut 2s ease-in-out 2.5s forwards;
   }
-  #splash h1 { font-size: 30px; text-shadow: 0 0 20px cyan; margin-bottom: 10px; }
-  #splash p { font-size: 14px; color: #00ffffcc; }
   @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+  #splash p { color: white; }
 
   .wrapper {
     width: 850px;
@@ -43,8 +42,6 @@
     background: rgba(20, 30, 45, 0.6);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    backdrop-filter: blur(16px);
     padding: 35px;
     text-align: center;
     opacity: 0;
@@ -53,105 +50,70 @@
   @keyframes fadeIn { to { opacity: 1; } }
 
   header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
     font-size: 28px;
     font-weight: 600;
     color: cyan;
     text-shadow: 0 0 12px cyan;
     margin-bottom: 25px;
   }
-  header img { width: 40px; height: 40px; }
 
   .drop-zone {
     border: 2px dashed rgba(0,255,255,0.4);
     border-radius: 12px;
     padding: 40px 20px;
-    transition: 0.3s;
   }
-  .drop-zone.dragover {
-    border-color: cyan;
-    background-color: rgba(0,255,255,0.08);
-  }
-  .drop-zone p { margin: 10px 0 20px; font-size: 15px; color: #ddd; }
 
   button {
     background-color: cyan;
-    color: #000;
     border: none;
-    border-radius: 8px;
     padding: 10px 22px;
     font-weight: bold;
+    border-radius: 8px;
     cursor: pointer;
     margin: 6px;
-    transition: 0.3s;
-  }
-  button:hover {
-    background-color: #00ffffaa;
-    box-shadow: 0 0 10px cyan;
   }
 
   .clear-btn {
     background-color: #ff5555;
-    color: #fff;
-  }
-  .clear-btn:hover {
-    background-color: #ff7777;
-    box-shadow: 0 0 10px #ff4444;
+    color: white;
   }
 
   .progress-container {
     width: 100%;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
+    height: 12px;
     border-radius: 10px;
-    overflow: hidden;
-    margin-top: 15px;
-    height: 14px;
-    position: relative;
+    display: none;
+    margin-top: 14px;
   }
   .progress-bar {
-    width: 0%;
     height: 100%;
+    width: 0%;
     background: linear-gradient(90deg, cyan, #00ffaa);
-    box-shadow: 0 0 10px cyan;
-    transition: width 0.3s ease;
-  }
-
-  .progress-text {
-    position: absolute;
-    top: -25px;
-    right: 10px;
-    font-size: 14px;
-    color: cyan;
   }
 
   #summaryInfo {
     color: white;
-    font-size: 16px;
-    margin-top: 12px;
+    font-size: 15px;
+    margin-top: 10px;
     font-weight: 600;
     opacity: 0;
-    transition: opacity 0.6s ease-in-out;
+    transition: .4s ease;
   }
 
   #userMessage {
-    margin-top: 20px;
     color: cyan;
-    font-size: 16px;
     display: none;
-    opacity: 0;
-    transition: opacity 0.6s ease-in-out;
+    margin-top: 12px;
   }
 
   footer {
-    margin-top: 25px;
+    margin-top: 40px;        /* moved footer down */
     font-size: 13px;
     color: #aaa;
   }
   footer span {
-    color: cyan;
+    color: white;
     font-weight: bold;
   }
 </style>
@@ -159,228 +121,180 @@
 
 <body>
 
-  <!-- SPLASH -->
-  <div id="splash">
-    <h1>🎬 Video Metadata Extractor</h1>
-    <p>Developed by Mangeshh Gaykar</p>
+<div id="splash">
+  <h1>🎬 Video Metadata Extractor</h1>
+  <p>Developed by <span style="color:white;">Mangeshh Gaykar</span></p>
+</div>
+
+<div class="wrapper">
+
+  <header>Video Metadata Extractor</header>
+
+  <div class="drop-zone">
+    <p>Drag & Drop your video files here</p>
+
+    <button id="fileSelectBtn">Select Video Files</button>
+    <input type="file" id="fileInput" accept="video/*" multiple style="display:none;">
+
+    <button id="folderSelectBtn">Select Folder</button>
+    <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;">
+
+    <p>Supported formats: MP4, MKV, AVI, MOV, WMV</p>
+
+    <p id="summaryInfo"></p>
   </div>
 
-  <div class="wrapper">
+  <button id="exportBtn">Export to Excel</button>
+  <button id="clearBtn" class="clear-btn">🗑 Clear All</button>
 
-    <header>
-      <img src="imgvideo.png" alt="icon">
-      <div>Video Metadata Extractor</div>
-    </header>
-
-    <div id="dropZone" class="drop-zone">
-      <p>Drag & Drop your video files here</p>
-
-      <button id="fileSelectBtn">Select Video Files</button>
-      <input type="file" id="fileInput" multiple accept="video/*" style="display:none;">
-
-      <button id="folderSelectBtn">Select Folder</button>
-      <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none;">
-
-      <p>Supported formats: MP4, MKV, AVI, MOV, WMV</p>
-
-      <!-- SUMMARY -->
-      <p id="summaryInfo"></p>
-
-    </div>
-
-    <div style="text-align:center; margin-top:20px;">
-      <button id="exportBtn">Export to Excel</button>
-      <button id="clearBtn" class="clear-btn">🗑 Clear All</button>
-    </div>
-
-    <div class="progress-container" id="progressContainer" style="display:none;">
-      <div class="progress-bar" id="progressBar"></div>
-      <div class="progress-text" id="progressText">0%</div>
-    </div>
-
-    <p id="userMessage"></p>
-
-    <footer>🧑‍💻 Developed by <span>Mangeshh Gaykar</span></footer>
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
   </div>
 
-<!-- XLSX-STYLE (supports cell formatting) -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx-style@0.8.13/dist/xlsx.core.min.js"></script>
+  <p id="userMessage"></p>
+
+  <footer>🧑‍💻 Developed by <span>Mangeshh Gaykar</span></footer>
+</div>
+
+<!-- Excel with styling -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
 
 <script>
+let metadataList = [];
 
-  const dropZone = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
-  const folderInput = document.getElementById('folderInput');
-  const fileSelectBtn = document.getElementById('fileSelectBtn');
-  const folderSelectBtn = document.getElementById('folderSelectBtn');
-  const exportBtn = document.getElementById('exportBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBar = document.getElementById('progressBar');
-  const progressText = document.getElementById('progressText');
-  const summaryInfo = document.getElementById('summaryInfo');
-  const userMessage = document.getElementById('userMessage');
+const fileInput = document.getElementById("fileInput");
+const folderInput = document.getElementById("folderInput");
+const summaryInfo = document.getElementById("summaryInfo");
+const userMessage = document.getElementById("userMessage");
+const progressContainer = document.getElementById("progressContainer");
+const progressBar = document.getElementById("progressBar");
 
-  let selectedFiles = [];
-  let metadataList = [];
+/* File selection handlers */
+document.getElementById("fileSelectBtn").onclick = () => fileInput.click();
+document.getElementById("folderSelectBtn").onclick = () => folderInput.click();
 
-  fileSelectBtn.onclick = () => fileInput.click();
-  folderSelectBtn.onclick = () => folderInput.click();
+fileInput.onchange = e => processFiles(e.target.files);
+folderInput.onchange = e => processFiles(e.target.files);
 
-  fileInput.addEventListener('change', e => handleFiles(e.target.files));
-  folderInput.addEventListener('change', e => handleFiles(e.target.files));
+/* PROCESS FILES */
+async function processFiles(files) {
+  const valid = [...files].filter(f => f.type.startsWith("video/"));
+  if (!valid.length) return;
 
-  dropZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
-  });
+  metadataList = [];
+  summaryInfo.style.opacity = 0;
+  userMessage.style.display = "none";
 
-  clearBtn.addEventListener('click', () => {
-    selectedFiles = [];
-    metadataList = [];
-    progressBar.style.width = "0%";
-    progressText.textContent = "0%";
+  progressContainer.style.display = "block";
+  progressBar.style.width = "0%";
 
-    userMessage.style.display = "none";
-    summaryInfo.style.opacity = 0;
-    summaryInfo.innerHTML = "";
-  });
+  let totalDuration = 0;
 
-  function handleFiles(files) {
-    const validFiles = [...files].filter(f => f.type.startsWith("video/"));
-    selectedFiles = validFiles;
-    analyzeVideosSequentially();
-  }
+  for (let i = 0; i < valid.length; i++) {
+    await new Promise(resolve => {
+      const vid = document.createElement("video");
+      vid.preload = "metadata";
+      vid.src = URL.createObjectURL(valid[i]);
 
-  async function analyzeVideosSequentially() {
-    if (!selectedFiles.length) return;
+      vid.onloadedmetadata = () => {
+        URL.revokeObjectURL(vid.src);
 
-    metadataList = [];
-    userMessage.style.display = "none";
-    summaryInfo.style.opacity = 0;
+        totalDuration += vid.duration;
 
-    progressContainer.style.display = "block";
-    progressBar.style.width = "0%";
-    progressText.textContent = "0%";
+        metadataList.push({
+          "File Name": valid[i].name,
+          "Duration": new Date(vid.duration * 1000).toISOString().substr(11, 8),
+          "Resolution": vid.videoWidth + "x" + vid.videoHeight,
+          "Size": formatSize(valid[i].size)
+        });
 
-    let totalDuration = 0;
-
-    for (let i = 0; i < selectedFiles.length; i++) {
-
-      const file = selectedFiles[i];
-
-      await new Promise(resolve => {
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = URL.createObjectURL(file);
-
-        video.onloadedmetadata = () => {
-          URL.revokeObjectURL(video.src);
-
-          totalDuration += video.duration;
-
-          metadataList.push({
-            "File Name": file.name,
-            "Duration": new Date(video.duration * 1000).toISOString().substr(11, 8),
-            "Resolution": `${video.videoWidth}x${video.videoHeight}`,
-            "Size": formatSize(file.size)
-          });
-
-          const progress = Math.round(((i + 1) / selectedFiles.length) * 100);
-          progressBar.style.width = progress + "%";
-          progressText.textContent = progress + "%";
-
-          resolve();
-        };
-      });
-    }
-
-    progressText.textContent = "✔ Completed";
-    setTimeout(() => { progressContainer.style.display = "none"; }, 800);
-
-    summaryInfo.innerHTML =
-      `Total Videos: ${metadataList.length}<br>Total Duration: ${formatTotalDuration(totalDuration)}`;
-    summaryInfo.style.opacity = 1;
-
-    userMessage.textContent = "Processing completed. Click Export to Excel for details report.";
-    userMessage.style.display = "block";
-    setTimeout(() => userMessage.style.opacity = 1, 50);
-  }
-
-  function formatSize(bytes) {
-    const mb = bytes / (1024 * 1024);
-    return mb > 1024 ? (mb / 1024).toFixed(2) + " GB" : mb.toFixed(2) + " MB";
-  }
-
-  function formatTotalDuration(seconds) {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-  }
-
-  /* ========= EXCEL EXPORT WITH FORMATTING + AUTO COLUMN WIDTH ========= */
-  exportBtn.addEventListener('click', () => {
-    if (!metadataList.length) return;
-
-    let totalDuration = metadataList.reduce((acc, m) => {
-      const [h, mnt, s] = m["Duration"].split(':').map(Number);
-      return acc + h * 3600 + mnt * 60 + s;
-    }, 0);
-
-    const totalRow = {
-      "File Name": "Total Videos: " + metadataList.length,
-      "Duration": "Total Duration: " + formatTotalDuration(totalDuration),
-      "Resolution": "",
-      "Size": ""
-    };
-
-    const exportData = [...metadataList, {}, totalRow];
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    const lastRow = range.e.r;
-
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-
-      // HEADER - Bold Black
-      const headerCell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
-      if (headerCell) {
-        headerCell.s = {
-          font: { bold: true, color: { rgb: "000000" } }
-        };
-      }
-
-      // TOTAL ROW - Bold Red
-      const totalCell = ws[XLSX.utils.encode_cell({ r: lastRow, c: C })];
-      if (totalCell && totalCell.v) {
-        totalCell.s = {
-          font: { bold: true, color: { rgb: "FF0000" } }
-        };
-      }
-    }
-
-    /* 🔥 AUTO-COLUMN WIDTH */
-    const colWidths = [];
-    exportData.forEach(row => {
-      Object.keys(row).forEach((key, index) => {
-        const cellValue = row[key] ? row[key].toString() : "";
-        colWidths[index] = Math.max(colWidths[index] || 10, cellValue.length + 5);
-      });
+        progressBar.style.width = ((i + 1) / valid.length * 100) + "%";
+        resolve();
+      };
     });
+  }
 
-    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+  progressContainer.style.display = "none";
 
-    const wb = { SheetNames: ["Video Metadata"], Sheets: { "Video Metadata": ws } };
-    XLSX.writeFile(wb, "Video_Metadata_Report.xlsx", { bookType: "xlsx", type: "binary" });
-  });
+  summaryInfo.innerHTML =
+    `Total Videos: ${metadataList.length}<br>Total Duration: ${formatTotal(totalDuration)}`;
+  summaryInfo.style.opacity = 1;
 
+  userMessage.textContent = "Processing completed. Click Export to Excel for details report.";
+  userMessage.style.display = "block";
+}
+
+/* Clear All FIXED */
+document.getElementById("clearBtn").onclick = () => {
+  metadataList = [];
+
+  summaryInfo.style.opacity = 0;
+  summaryInfo.innerHTML = "";
+
+  userMessage.style.display = "none";
+  userMessage.textContent = "";
+
+  progressContainer.style.display = "none";
+  progressBar.style.width = "0%";
+
+  fileInput.value = "";
+  folderInput.value = "";
+};
+
+/* Helpers */
+function formatSize(bytes) {
+  const mb = bytes / 1024 / 1024;
+  return mb > 1024 ? (mb / 1024).toFixed(2) + " GB" : mb.toFixed(2) + " MB";
+}
+function formatTotal(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+  const s = String(Math.floor(sec % 60)).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+/* EXPORT TO EXCEL (works with styles) */
+document.getElementById("exportBtn").onclick = () => {
+  if (!metadataList.length) return;
+
+  let total = metadataList.reduce((acc, row) => {
+    const [h, m, s] = row["Duration"].split(":").map(Number);
+    return acc + h * 3600 + m * 60 + s;
+  }, 0);
+
+  const totalRow = {
+    "File Name": "Total Videos: " + metadataList.length,
+    "Duration": "Total Duration: " + formatTotal(total),
+    "Resolution": "",
+    "Size": ""
+  };
+
+  const data = [...metadataList, {}, totalRow];
+
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  ws['!cols'] = Object.keys(data[0]).map((k, i) => ({
+    wch: Math.max(...data.map(r => (r[k] + '').length)) + 5
+  }));
+
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const lastRow = range.e.r;
+
+  for (let C = range.s.c; C <= range.e.c; C++) {
+
+    let hd = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+    if (hd) hd.s = { font: { bold: true, color: { rgb: "000000" } } };
+
+    let tc = ws[XLSX.utils.encode_cell({ r: lastRow, c: C })];
+    if (tc && tc.v)
+      tc.s = { font: { bold: true, color: { rgb: "FF0000" } } };
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Video Metadata");
+
+  XLSX.writeFile(wb, "Video_Metadata_Report.xlsx");
+};
 </script>
 
 </body>
